@@ -1,3 +1,40 @@
+<script>
+  function readBatteryLevel() {
+  var $target = document.getElementById('target');
+  
+  if (!('bluetooth' in navigator)) {
+    $target.innerText = 'Bluetooth API not supported.';
+    return;
+  }
+  
+  navigator.bluetooth.requestDevice({
+      filters: [{
+        services: ['battery_service']
+      }]
+    })
+    .then(function (device) {
+      return device.gatt.connect();
+    })
+    .then(function (server) {
+      return server.getPrimaryService('battery_service');
+    })
+    .then(function (service) {
+      return service.getCharacteristic('battery_level');
+    })
+    .then(function (characteristic) {
+      return characteristic.readValue();
+    })
+    .then(function (value) {
+      $target.innerHTML = 'Battery percentage is <b>' + value.getUint8(0) + '</b>.';
+    })
+    .catch(function (error) {
+      $target.innerText = error;
+    });
+}
+
+document.getElementById('alert').hidden = window.self === window.top;
+</script>
+
 <p class="bg-danger alert" id="alert">Due to cross-origin restrictions, in order for Bluetooth API to work, open the demo <a href="https://s.codepen.io/WhatWebCanDo/debug/VvPaRY/PBkNWxggBXYM" target="_blank">in the standalone mode</a>.</p>
 
 <p>
